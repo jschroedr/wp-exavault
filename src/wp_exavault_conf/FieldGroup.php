@@ -16,7 +16,7 @@ namespace wp_exavault_conf {
      * 
      * PHP version 7.4
      * 
-     * @category Integration
+     * @category Configuration
      * @package  WP_Exavault
      * @author   Jake Schroeder <jake_schroeder@outlook.com>
      * @license  GNU v3

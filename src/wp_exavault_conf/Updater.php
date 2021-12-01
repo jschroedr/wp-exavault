@@ -1,290 +1,279 @@
 <?php
 
-namespace wp_exavault_conf
-{
-
 /**
- * Class Updater
- * ========================================================================================================
- * Responsible for handling remote updates of the plugin
- *
- * See: https://www.smashingmagazine.com/2015/08/deploy-wordpress-plugins-with-github-using-transients/
- *
- * @package lm360_sitelink_ext
+ * PHP version 7.4
+ * 
+ * @category Configuration
+ * @package  WP_Exavault
+ * @author   Jake Schroeder <jake_schroeder@outlook.com>
+ * @license  GNU v3
+ * @link     https://github.com/jschroedr/wp-exavault/
+ * @since    1.1.0
  */
-class Updater
-{
-    // PLUGIN PROPERTIES
-    /**
-     * file paths are the primary key for plugins in wordpress - therefore $file is this entity's pk
-     * ````````````````````````````````````````````````````````````````````````````````````````````````````
-     * @var
-     */
-    protected $file;
+
+namespace wp_exavault_conf {
 
     /**
-     * plugin metadata from the main file's PHPDoc that is captured by Wordpress
-     * ````````````````````````````````````````````````````````````````````````````````````````````````````
-     * @var
+     * Updater Class
+     * 
+     * Until this plugin is on the WP Repository, we will reference the public
+     * GitHub repository for updates / releases.
+     * 
+     * PHP version 7.4
+     * 
+     * @category Configuration
+     * @package  WP_Exavault
+     * @author   Jake Schroeder <jake_schroeder@outlook.com>
+     * @license  GNU v3
+     * @link     https://github.com/jschroedr/wp-exavault/
+     * @since    1.1.0
      */
-    protected $plugin;
-
-    /**
-     * slug of the plugin path - used to check version number and to help ensure files get to their
-     * proper destination
-     * ````````````````````````````````````````````````````````````````````````````````````````````````````
-     * @var
-     */
-    protected $basename;
-
-    /**
-     * whether the plugin is activated or not - this attribute is set from Wordpress
-     * ````````````````````````````````````````````````````````````````````````````````````````````````````
-     * @var
-     */
-    protected $active;
-
-    // REPOSITORY PROPERTIES
-    /**
-     * repository username used for authentication
-     * ````````````````````````````````````````````````````````````````````````````````````````````````````
-     * @var
-     */
-    private $username;
-
-    /**
-     * name of the repository whose source code makes up this plugin
-     * ````````````````````````````````````````````````````````````````````````````````````````````````````
-     * @var
-     */
-    private $repository;
-
-    /**
-     * auth token returned (set) from the github server
-     * ````````````````````````````````````````````````````````````````````````````````````````````````````
-     * @var
-     */
-    private $authorize_token;
-
-    /**
-     * raw http response object returned (set) from the github server
-     * ````````````````````````````````````````````````````````````````````````````````````````````````````
-     * @var
-     */
-    private $github_response;
-
-    /**
-     * Updater constructor.
-     * ====================================================================================================
-     * Register the appropriate actions and attributes to allow automated update checking and ultimately,
-     * secure remote update installation
-     *
-     * @param $file
-     */
-    public function __construct($file)
+    class Updater
     {
-        // store the unique identifier, the plugin's path, as a protected attribute
-        $this->file = $file;
 
-        // get the plugin data and store it accordingly
-        // use admin_init to ensure the plugin functions are available in time for this code to be called
-        add_action(
-            'admin_init',
-            array(
-                $this,
-                'set_plugin_properties'
-            )
-        );
-        return $this;
-    }
+        protected $file;
+        protected $plugin;
+        protected $basename;
+        protected $active;
 
-    /**
-     * set_plugin_properties
-     * ====================================================================================================
-     * Get basic information about the plugin, including whether it is currently active or not
-     *
-     * This method is referenced in __construct() in an added action
-     *
-     * @noinspection PhpUnused
-     */
-    public function set_plugin_properties() {
-        $this->plugin = get_plugin_data($this->file);
-        $this->basename = plugin_basename($this->file);
-        $this->active = is_plugin_active($this->file);
-    }
+        private $_username;
+        private $_repository;
+        private $_github_response;
 
-    /**
-     * setUsername
-     * ====================================================================================================
-     * Setter method for the username attribute
-     *
-     * @param $username
-     */
-    public function setUsername($username) {
-        $this->username = $username;
-    }
+        /**
+         * Construct a new Updater instance for WP Exavault
+         * 
+         * @param string $file the plugin base file to update from
+         * 
+         * @return Updater
+         */
+        public function __construct(string $file)
+        {
+            $this->file = $file;
 
-    /**
-     * setRepository
-     * ====================================================================================================
-     * Setter method for the repository attribute
-     *
-     * @param $repository
-     */
-    public function setRepository($repository) {
-        $this->repository = $repository;
-    }
-
-
-    /**
-     * authorize
-     * ===================================================================================================
-     * Get the update_key from the Sitelink Authorization Service
-     */
-    private function authorize() {
-        $acct = new Account();
-        $token = $acct->authorize()['update_key'];
-        $this->authorize_token = $token;
-    }
-
-    /**
-     * getRepositoryInfo
-     * ====================================================================================================
-     * Make an api request to get the metadata regarding this plugin's repository. Depends on a valid
-     * authentication.
-     */
-    public function getRepositoryInfo() {
-        $this->authorize();
-        $request_uri = sprintf( 'https://api.github.com/repos/%s/%s/releases', $this->username, $this->repository ); // Build URI
-        $response = json_decode( wp_remote_retrieve_body( wp_remote_get( $request_uri ) ), true ); // Get JSON and parse it
-        if( is_array( $response ) ) { // If it is an array
-            $response = current( $response ); // Get the first item
+            // get the plugin data and store it accordingly
+            // use admin_init to ensure the plugin functions
+            // are available in time for this code to be called
+            add_action(
+                'admin_init',
+                array(
+                    $this,
+                    'setPluginProperties'
+                )
+            );
+            return $this;
         }
-        if(!is_array($response)) {
-            $this->github_response = json_decode($response);
+
+        /**
+         * Set the properties of the plugin so we may reference
+         * them during the update hook from WP
+         * 
+         * @return void
+         */
+        public function setPluginProperties(): void
+        {
+            $this->plugin = get_plugin_data($this->file);
+            $this->basename = plugin_basename($this->file);
+            $this->active = is_plugin_active($this->file);
         }
-        $this->github_response = $response; // Set it to our property
-        return $response;
-    }
 
-    public function initialize() {
-        // modify the transient
-        add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'modifyTransient' ), 10, 1 );
+        /**
+         * Setter for userame attribute
+         * 
+         * @param string $username the github username the repo belongs to
+         * 
+         * @return void
+         */
+        public function setUsername(string $username): void
+        {
+            $this->username = $username;
+        }
 
-        // ensure our plugin data get passed into the wordpress interface
-        add_filter( 'plugins_api', array( $this, 'pluginPopup' ), 10, 3);
+        /**
+         * Setter for the repository attribute
+         * 
+         * @param string $repository the github repository name
+         * 
+         * @return void
+         */
+        public function setRepository($repository): void
+        {
+            $this->repository = $repository;
+        }
 
-        // ensure plugin is activated after the update
-        add_filter( 'upgrader_post_install', array( $this, 'afterInstall' ), 10, 3 );
-    }
+        /**
+         * Get and set the repository's latest release
+         * 
+         * @return array the latest release if available
+         */
+        public function getRepositoryInfo(): array
+        {
+            // build the url, make the request, and decode the response JSON
+            $url = 'https://api.github.com/repos/' .
+                $this->username . '/' .
+                $this->_repository . '/releases';
+            $response = wp_remote_get($url);
+            $body = wp_remote_retrieve_body($response);
+            $decoded = json_decode($body, true);
+            // set the github response to the first release returned
+            // (in other words, the most recent release)
+            $currentRelease = current($decoded);
+            // handle when there are not any releases available
+            if (!is_array($currentRelease)) {
+                $currentRelease = [];
+            }
+            $this->_github_response = $currentRelease;
+            return $decoded;
+        }
 
-    /**
-     * modifyTransient
-     * ====================================================================================================
-     * During the plugin update-check workflow, see if there is a new version of this plugin.
-     * If there is, download the files and set them as an attribute of the given transient.
-     *
-     * This method is referenced in an action set during initialize()
-     *
-     * @param $transient
-     * @return mixed
-     * @noinspection PhpUnused
-     */
-    public function modifyTransient($transient ) {
-        if( property_exists( $transient, 'checked') ) { // Check if transient has a checked property
-            if( $checked = $transient->checked ) { // Did WordPress check for updates?
-                $this->getRepositoryInfo(); // Get the repo info
-                if(array_key_exists('tag_name', $this->github_response)) {
-                    $out_of_date = version_compare( $this->github_response['tag_name'], $checked[$this->basename], 'gt' ); // Check if we're out of date
-                    if( $out_of_date ) {
-                        $new_files = $this->github_response['zipball_url']; // Get the ZIP
-                        $slug = current( explode('/', $this->basename ) ); // Create valid slug
-                        $plugin = array( // setup our plugin info
-                            'url' => $this->plugin["PluginURI"],
-                            'slug' => $slug,
-                            'package' => $new_files,
-                            'new_version' => $this->github_response['tag_name']
+        /**
+         * Set the WP hooks this class needs to listen to
+         * in order to perform the update.
+         * 
+         * @return void
+         */
+        public function initialize(): void
+        {
+            // modify the transient
+            add_filter(
+                'pre_set_site_transient_update_plugins',
+                [
+                    $this,
+                    'modifyTransient'
+                ],
+                10,
+                1
+            );
+
+            // ensure our plugin data get passed into the wordpress interface
+            add_filter(
+                'plugins_api',
+                [
+                    $this,
+                    'pluginPopup'
+                ],
+                10,
+                3
+            );
+
+            // ensure plugin is activated after the update
+            add_filter(
+                'upgrader_post_install',
+                [
+                    $this,
+                    'afterInstall'
+                ],
+                10,
+                3
+            );
+        }
+
+        /**
+         * Intercept the check for a new version
+         * 
+         * @param object $transient the WP Transient data
+         * 
+         * @return object
+         */
+        public function modifyTransient(object $transient) : object
+        {
+            if (property_exists($transient, 'checked')) {
+                if ($transient->checked) {
+                    $this->getRepositoryInfo(); // Get the repo info
+                    if (array_key_exists('tag_name', $this->github_response)) {
+                        // check if we are out of date
+                        $out_of_date = version_compare(
+                            $this->github_response['tag_name'], 
+                            $transient->checked[$this->basename], 
+                            'gt'
                         );
-                        $transient->response[ $this->basename ] = (object) $plugin; // Return it in response
+                        if ($out_of_date) {
+                            $new_files = $this->github_response['zipball_url'];
+                            $slug = current(explode('/', $this->basename));
+                            $plugin = array( // setup our plugin info
+                                'url' => $this->plugin["PluginURI"],
+                                'slug' => $slug,
+                                'package' => $new_files,
+                                'new_version' => $this->github_response['tag_name']
+                            );
+                            $transient->response[$this->basename] = (object) $plugin;
+                        }
                     }
-                } else {
-                    Utilities::log('Invalid GitHub Response: ' . json_encode($this->github_response));
                 }
             }
+            return $transient; // Return filtered transient
         }
-        return $transient; // Return filtered transient
-    }
 
-    /**
-     * pluginPopup
-     * ====================================================================================================
-     * Pop-up in wp-admin screen that provides details about the update / plugin. We reference plugin
-     * metadata and information from the .git repository for this.
-     *
-     * This method is referenced in an action set during initialize()
-     *
-     * @param $result
-     * @param $action
-     * @param $args
-     * @return object
-     * @noinspection PhpUnused
-     * @noinspection PhpUnusedParameterInspection
-     */
-    public function pluginPopup($result, $action, $args ) {
-        if( ! empty( $args->slug ) ) { // If there is a slug
-            if( $args->slug == current( explode( '/' , $this->basename ) ) ) { // And it's our slug
-                $this->getRepositoryInfo(); // Get our repo info
-                // Set it to an array
-                $plugin = array(
-                    'name'              => $this->plugin["Name"],
-                    'slug'              => $this->basename,
-                    'version'           => $this->github_response['tag_name'],
-                    'author'            => $this->plugin["AuthorName"],
-                    'author_profile'    => $this->plugin["AuthorURI"],
-                    'last_updated'      => $this->github_response['published_at'],
-                    'homepage'          => $this->plugin["PluginURI"],
-                    'short_description' => $this->plugin["Description"],
-                    'sections'          => array(
-                        'Description'   => $this->plugin["Description"],
-                        'Updates'       => $this->github_response['body'],
-                    ),
-                    'download_link'     => $this->github_response['zipball_url']
-                );
-                return (object) $plugin; // Return the data
+        /**
+         * Provide plugin details during the update pop-up
+         * 
+         * @return object plugin details
+         */
+        public function pluginPopup() : object
+        {
+            $argumentArray = func_get_args();
+            $result = $argumentArray[0];
+            $args = $argumentArray[2];
+            if (!empty($args->slug)) {
+                if ($args->slug == current(explode('/', $this->basename))) {
+                    $this->getRepositoryInfo(); // Get our repo info
+                    // Set it to an array
+                    $publishedAt = $this->github_response['published_at'];
+                    $plugin = array(
+                        'name'              => $this->plugin["Name"],
+                        'slug'              => $this->basename,
+                        'version'           => $this->github_response['tag_name'],
+                        'author'            => $this->plugin["AuthorName"],
+                        'author_profile'    => $this->plugin["AuthorURI"],
+                        'last_updated'      => $publishedAt,
+                        'homepage'          => $this->plugin["PluginURI"],
+                        'short_description' => $this->plugin["Description"],
+                        'sections'          => array(
+                            'Description'   => $this->plugin["Description"],
+                            'Updates'       => $this->github_response['body'],
+                        ),
+                        'download_link'     => $this->github_response['zipball_url']
+                    );
+                    return (object) $plugin; // Return the data
+                }
             }
+            return $result; // Otherwise return default
         }
-        return $result; // Otherwise return default
-    }
 
-    /**
-     * afterInstall
-     * ====================================================================================================
-     * Post-processing steps after the new plugin version has been pulled down and extracted.
-     * Reactivates plugin after installation
-     *
-     * This method is referenced in an action set during initialize()
-     *
-     * @param $response
-     * @param $hook_extra
-     * @param $result
-     * @return mixed
-     * @noinspection PhpUnused
-     * @noinspection PhpUnusedParameterInspection
-     */
-    public function afterInstall($response, $hook_extra, $result ) {
-        global $wp_filesystem; // Get global FS object
+        /**
+         * Post-processing steps after the new plugin version has been pulled down
+         * and extracted.
+         * 
+         * Reactivates plugin after installation
+         *
+         * This method is referenced in an action set during initialize()
+         * 
+         * @return array the installation $result data
+         */
+        public function afterInstall(): array
+        {
 
-        $install_directory = plugin_dir_path( $this->file ); // Our plugin directory
-        $wp_filesystem->move( $result['destination'], $install_directory ); // Move files to the plugin dir
-        $result['destination'] = $install_directory; // Set the destination for the rest of the stack
+            // get the third argument, which should be the result object
+            $result = func_get_arg(2);
 
-        if ( $this->active ) { // If it was active
-            activate_plugin( $this->basename ); // Reactivate
+            // get the plugin directory
+            $install_directory = plugin_dir_path($this->file);
+
+            // get a global filesystem object
+            // and move the new files to the plugin directory
+            global $wp_filesystem;
+            $wp_filesystem->move(
+                $result['destination'],
+                $install_directory
+            );
+            // set the destination for the rest of the update stack
+            $result['destination'] = $install_directory;
+
+            // activate the plugin if it was previously active
+            if ($this->active) {
+                activate_plugin($this->basename);
+            }
+            return $result;
         }
-        return $result;
     }
-
 }
-
-}
-

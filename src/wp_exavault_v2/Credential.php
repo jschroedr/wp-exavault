@@ -1,52 +1,70 @@
 <?php
 
+/**
+ * PHP version 7.4
+ * 
+ * @category Integration
+ * @package  WP_Exavault
+ * @author   Jake Schroeder <jake_schroeder@outlook.com>
+ * @license  GNU v3
+ * @link     https://github.com/jschroedr/wp-exavault/
+ * @since    1.0.0
+ */
+
 namespace wp_exavault_v2 {
 
     use wp_exavault_conf\Utility;
     use wp_exavault_conf\Encryption;
 
-    class Credential {
+    /**
+     * API Credential Management Class
+     * 
+     * PHP version 7.4
+     * 
+     * @category Integration
+     * @package  WP_Exavault
+     * @author   Jake Schroeder <jake_schroeder@outlook.com>
+     * @license  GNU v3
+     * @link     https://github.com/jschroedr/wp-exavault/
+     * @since    1.0.0
+     */
+    class Credential
+    {
 
-        const Version = 'v2';
+        const VERSION = 'v2';
 
-        const UrlField = '_url';
-        const KeyField = '_api_key';
-        const TokenField = '_access_token';
-        const TimeoutField = '_timeout_value';
+        const URL_FIELD = '_url';
+        const KEY_FIELD = '_api_key';
+        const TOKEN_FIELD = '_access_token';
+        const TIMEOUT_FIELD = '_timeout_value';
 
-        public static function getDecrypted(string $field) : string
+        /**
+         * Get the credentials in array format
+         * 
+         * @return array credentials with all necessary options menu data
+         */
+        public static function get(): array
         {
-            $encrypted = Utility::getField($field);
-            $encryption = new Encryption(self::Version);
-            return $encryption->decrypt($encrypted);
-        }
-        
-        public static function encrypt(string $value) : string
-        {
-            $encryption = new Encryption(self::Version);
-            return $encryption->encrypt($value);
-        }
 
-        public static function get() : array 
-        {
-            
+            // get the url filed
+            $url = Utility::getField(self::VERSION . self::URL_FIELD);
+
             // get the api key, and decrypt it to plain text
-            $apiKey = self::getDecrypted(self::Version . self::KeyField);
+            $apiKey = Utility::getField(self::VERSION . self::KEY_FIELD);
 
             // get the access token, and decrypt it to plain text 
-            $accessToken = self::getDecrypted(self::Version . self::TokenField);
+            $accessToken = Utility::getField(self::VERSION . self::TOKEN_FIELD);
 
             // get the timeout setting
-            $timeout = 30;
+            $timeout = Utility::getField(self::VERSION . self::TIMEOUT_FIELD);
 
+            // package up the credentials as an associative array and return
             return [
-                'url' => Utility::getField(self::Version . self::UrlField),
+                'url' => $url,
                 'apiKey' => $apiKey,
                 'accessToken' => $accessToken,
-                'timeout' => Utility::getField(self::Version . self::TimeoutField)
+                'timeout' => $timeout
             ];
         }
-
     }
-
 }

@@ -7,7 +7,7 @@
  * @author   Jake Schroeder <jake_schroeder@outlook.com>
  * @license  GNU v3
  * @link     https://github.com/jschroedr/wp-exavault/
- * @since    1.0.0
+ * @since    1.1.0
  */
 namespace wp_exavault_conf {
 
@@ -16,7 +16,7 @@ namespace wp_exavault_conf {
      * 
      * PHP version 7.4
      * 
-     * @category Integration
+     * @category Configuration
      * @package  WP_Exavault
      * @author   Jake Schroeder <jake_schroeder@outlook.com>
      * @license  GNU v3
