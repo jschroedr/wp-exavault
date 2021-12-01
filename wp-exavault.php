@@ -53,6 +53,7 @@ spl_autoload_register('Wp_Exavault_autoload');
 use wp_exavault_v2\RestClient;
 use wp_exavault_conf\Menu;
 use wp_exavault_conf\FieldGroup;
+use wp_exavault_conf\Updater;
 
 
 /**
@@ -98,3 +99,9 @@ function Wp_Exavault_register() : void
     $client->register();
 }
 add_action('rest_api_init', 'Wp_Exavault_register');
+
+// enable remote updates from the public git repo
+$updater = new Updater(__FILE__);
+$updater->setUsername('jschroedr');
+$updater->setRepository('wp-exavault');
+$updater->initialize();
