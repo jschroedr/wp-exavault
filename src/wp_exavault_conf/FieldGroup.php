@@ -1,14 +1,45 @@
 <?php
-
+/**
+ * PHP version 7.4
+ * 
+ * @category Configuration
+ * @package  WP_Exavault
+ * @author   Jake Schroeder <jake_schroeder@outlook.com>
+ * @license  GNU v3
+ * @link     https://github.com/jschroedr/wp-exavault/
+ * @since    1.0.0
+ */
 namespace wp_exavault_conf {
 
-    class FieldGroup {
+    /**
+     * ACF Field Group Class
+     * 
+     * PHP version 7.4
+     * 
+     * @category Integration
+     * @package  WP_Exavault
+     * @author   Jake Schroeder <jake_schroeder@outlook.com>
+     * @license  GNU v3
+     * @link     https://github.com/jschroedr/wp-exavault/
+     * @since    1.0.0
+     */
+    class FieldGroup 
+    {
         
-        public static function setup() : void {
-            acf_add_local_field_group(self::Fields);
+        /**
+         * Setup the ACF Field Group
+         * 
+         * @return void
+         */
+        public static function setup() : void
+        {
+            $acfFunction = 'acf_add_local_field_group';
+            if (function_exists($acfFunction)) {
+                $acfFunction(self::FIELDS);
+            }
         }
 
-        const Fields = [
+        const FIELDS = [
             'key' => 'group_60e6550e8ccfc',
             'title' => 'WP Exavault',
             'fields' => [
@@ -33,7 +64,8 @@ namespace wp_exavault_conf {
                     'label' => 'URL',
                     'name' => 'wp_exavault_v2_url',
                     'type' => 'text',
-                    'instructions' => 'This is the base url to make api requests to: https://{account_name}.exavault.com',
+                    'instructions' => 'This is the base url to make api '. 
+                        'requests to: https://{account_name}.exavault.com',
                     'required' => 0,
                     'conditional_logic' => 0,
                     'wrapper' => array(
@@ -52,7 +84,9 @@ namespace wp_exavault_conf {
                     'label' => 'Timeout Value',
                     'name' => 'wp_exavault_v2_timeout_value',
                     'type' => 'number',
-                    'instructions' => 'How long should API requests to the V2 API be allowed to take? Tweak based on your web host settings.',
+                    'instructions' => 'How long should API requests ' .
+                        'to the V2 API be allowed to take? ' . 
+                        'Tweak based on your web host settings.',
                     'required' => 0,
                     'conditional_logic' => 0,
                     'wrapper' => array(
@@ -102,44 +136,6 @@ namespace wp_exavault_conf {
                     'prepend' => '',
                     'append' => '',                    
                 ],
-                [
-                    'key' => 'field_60e65529ad558',
-                    'label' => 'Encryption Key',
-                    'name' => 'wp_exavault_v2_key',
-                    'type' => 'password',
-                    'instructions' => 'Used for security purposes.',
-                    'required' => 0,
-                    'conditional_logic' => 0,
-                    'wrapper' => array(
-                      'width' => '',
-                      'class' => '',
-                      'id' => '',
-                    ),
-                    'placeholder' => '',
-                    'prepend' => '',
-                    'append' => '',
-                    'disabled' => 1,
-                    'readonly' => 1
-                ],
-                [
-                    'key' => 'field_60e65529ad777',
-                    'label' => 'Initialization Vector',
-                    'name' => 'wp_exavault_v2_iv',
-                    'type' => 'password',
-                    'instructions' => 'Used for security purposes.',
-                    'required' => 0,
-                    'conditional_logic' => 0,
-                    'wrapper' => array(
-                      'width' => '',
-                      'class' => 'readonly',
-                      'id' => '',
-                    ),
-                    'placeholder' => '',
-                    'prepend' => '',
-                    'append' => '',
-                    'disabled' => 1,
-                    'readonly' => 1
-                ]
             ],
             // update location
             'location' => array(
@@ -160,7 +156,5 @@ namespace wp_exavault_conf {
               'active' => true,
               'description' => '',
         ];
-
     }
-
 }

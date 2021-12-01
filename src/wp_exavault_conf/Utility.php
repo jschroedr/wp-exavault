@@ -1,21 +1,66 @@
 <?php
-
+/**
+ * PHP version 7.4
+ * 
+ * @category Configuration
+ * @package  WP_Exavault
+ * @author   Jake Schroeder <jake_schroeder@outlook.com>
+ * @license  GNU v3
+ * @link     https://github.com/jschroedr/wp-exavault/
+ * @since    1.0.0
+ */
 namespace wp_exavault_conf {
 
-    class Utility {
+    /**
+     * Configuration (ACF) Utility Class
+     * 
+     * PHP version 7.4
+     * 
+     * @category Integration
+     * @package  WP_Exavault
+     * @author   Jake Schroeder <jake_schroeder@outlook.com>
+     * @license  GNU v3
+     * @link     https://github.com/jschroedr/wp-exavault/
+     * @since    1.0.0
+     */
+    class Utility
+    {
 
-        const Prefix = 'wp_exavault_';
+        const PREFIX = 'wp_exavault_';
 
-        const PostId = 'options';
+        const POST_ID = 'options';
 
+        /**
+         * Get the options page field
+         * 
+         * @param string $field the ACF field to get
+         * 
+         * @return mixed, false on failure
+         */
         public static function getField(string $field)
         {
-            return get_field(self::Prefix . $field, self::PostId);
+            $acfFunction = 'get_field';
+            if (function_exists($acfFunction)) {
+                return $acfFunction(self::PREFIX . $field, self::POST_ID);
+            }
+            return false;
         }
 
+        /**
+         * Set the options page field
+         * 
+         * @param string $field the ACF field to set
+         * @param mixed  $value the ACF value to set
+         * 
+         * @return bool the operation outcome (true = success)
+         */
         public static function setField(string $field, $value) : bool
         {
-            return update_field(self::Prefix . $field, $value, self::PostId);
+            $acfFunction = 'update_field';
+            if (function_exists($acfFunction)) {
+                return $acfFunction(self::PREFIX . $field, $value, self::POST_ID);
+            }
+            return false;
         }
 
     }
